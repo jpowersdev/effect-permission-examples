@@ -1,0 +1,5 @@
+[submodule "vendor/effect"]
+	path = vendor/effect
+	url = https://github.com/jpowersdev/effect.git
+	branch = permission
+	shallow = true

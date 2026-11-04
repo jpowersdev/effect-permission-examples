@@ -1,0 +1,35 @@
+import { Schema } from "effect"
+import { HttpApiMiddleware, HttpApiSecurity } from "effect/http-api"
+import { type Authorizer, PermissionError } from "effect/permission"
+import { CurrentPrincipal } from "../permissions/Principal.ts"
+
+export class Unauthorized extends Schema.TaggedError<Unauthorized>()("Unauthorized", {}, {
+  httpApiStatus: 401
+}) {}
+
+// Authentication turns a bearer token into the current principal.
+export class Authentication extends HttpApiMiddleware.Service<
+  Authentication,
+  {
+    provides: CurrentPrincipal
+  }
+>()("examples/Authentication", {
+  requiredForClient: true,
+  security: { bearer: HttpApiSecurity.bearer },
+  error: Unauthorized
+}) {}
+
+// Authorize reads the action each endpoint requires and rejects callers who
+// could never perform it, before the request is decoded. It provides the
+// Authorizer, so handlers can check specific resources with
+// `Permissions.require`, and because it declares the permission errors,
+// handlers may fail with them too.
+export class Authorize extends HttpApiMiddleware.Service<
+  Authorize,
+  {
+    requires: CurrentPrincipal
+    provides: Authorizer.Authorizer
+  }
+>()("examples/Authorize", {
+  error: [PermissionError.PermissionDenied, PermissionError.PermissionUnavailable]
+}) {}

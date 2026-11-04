@@ -1,0 +1,27 @@
+{
+  "name": "effect-permission-examples",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@11.20.0",
+  "scripts": {
+    "start": "node src/main.ts",
+    "test": "vitest run",
+    "check": "tsc --noEmit",
+    "fork:update": "git submodule update --remote vendor/effect"
+  },
+  "dependencies": {
+    "@effect/platform-node": "link:./vendor/effect/packages/platform/node",
+    "@effect/platform-node-shared": "link:./vendor/effect/packages/platform/node-shared",
+    "@effect/sql-sqlite-node": "link:./vendor/effect/packages/sql/sqlite-node",
+    "effect": "link:./vendor/effect/packages/effect",
+    "undici": "^8.12.3",
+    "ws": "^8.22.1"
+  },
+  "devDependencies": {
+    "@effect/vitest": "link:./vendor/effect/packages/vitest",
+    "@types/node": "^26.6.6",
+    "@types/ws": "^8.18.2",
+    "typescript": "^7.0.2",
+    "vitest": "^5.0.5"
+  }
+}
