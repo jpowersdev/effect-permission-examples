@@ -30,7 +30,7 @@ export class RpcAuthorize extends RpcMiddleware.Service<
 
 // An RPC handler can only fail with errors its RPC declares, so RPCs that
 // check a resource in the handler include the permission errors.
-const SwapError = Schema.Union([SwapNotFound, PermissionError.PermissionDenied, PermissionError.PermissionUnavailable])
+const SwapError = Schema.Union([SwapNotFound, PermissionError.PermissionError])
 
 export const AcceptSwap = Rpc.make("AcceptSwap", {
   payload: { id: SwapRequestId },

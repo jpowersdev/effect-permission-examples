@@ -66,9 +66,9 @@ export const SwapRules = Permission.rules(CurrentPrincipal, SwapRequest, {
 
 export const Permissions = Permission.make(CurrentPrincipal, {
   rules: [UnitRules, SwapRules],
-  // If a principal's limit includes the name on the left, it includes every
-  // action on the right. Links sent by text message carry `swaps:respond`.
-  actionGroups: {
+  // If a principal's limit includes an alias, it includes every action the
+  // alias stands for. Links sent by text message carry `swaps:respond`.
+  aliases: {
     "swaps:respond": ["swaps:read", "swaps:accept"]
   }
 })

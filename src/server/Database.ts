@@ -1,14 +1,10 @@
 import { SqliteClient, SqliteMigrator } from "@effect/sql-sqlite-node"
 import { Effect, Layer, String as Str } from "effect"
-import { PermissionSql } from "effect/permission"
 import { SqlClient } from "effect/sql"
-import { SwapRequest } from "../domain/SwapRequest.ts"
-import { Unit } from "../domain/Unit.ts"
-import { UnitMembership } from "../permissions/Permissions.ts"
 
 // Columns are snake_case and fields camelCase. The name transforms apply to
 // the identifiers in compiled permission filters too, so the table mappings
-// below only need table names.
+// in PermissionsSql only need table names.
 const SqlLayer = SqliteClient.layer({
   filename: ":memory:",
   transformQueryNames: Str.camelToSnake,
@@ -78,18 +74,5 @@ const MigratorLayer = SqliteMigrator.layer({
   })
 })
 
-// Where each resource and relation lives, for compiling permission filters
-// and for looking up `UnitMembership` facts.
-const PermissionSqlLayer = PermissionSql.layer({
-  tables: [PermissionSql.table(Unit, "units"), PermissionSql.table(SwapRequest, "swap_requests")],
-  relations: [
-    PermissionSql.relation(UnitMembership, { table: "profile_units", subject: "profile_id", object: "unit_id" })
-  ]
-})
-
-// A fresh, migrated and seeded database with its permission mappings.
-export const DatabaseLayer = PermissionSqlLayer.pipe(
-  Layer.provideMerge(MigratorLayer),
-  Layer.provideMerge(SqlLayer),
-  Layer.orDie
-)
+// A fresh, migrated and seeded database
+export const DatabaseLayer = MigratorLayer.pipe(Layer.provideMerge(SqlLayer), Layer.orDie)

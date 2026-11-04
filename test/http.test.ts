@@ -2,7 +2,7 @@ import { assert, describe, it } from "@effect/vitest"
 import { Effect } from "effect"
 import { SqlClient } from "effect/sql"
 import { SwapRequestId, UnitId, ProfileId } from "../src/domain/Ids.ts"
-import { AppLayer, clientFor, clientWith, tokenFor } from "./utils.ts"
+import { AppLayer, clientFor, clientWith, guestClient, tokenFor } from "./utils.ts"
 
 const s1 = SwapRequestId.make("s-1")
 
@@ -16,6 +16,19 @@ describe("Shift swaps over HttpApi", () => {
       assert.deepStrictEqual(ids(yield* (yield* clientFor("ben")).units.list()), ["u-cardio", "u-icu"])
       // Dev is a super admin
       assert.deepStrictEqual(ids(yield* (yield* clientFor("dev")).units.list()), ["u-cardio", "u-ed", "u-icu"])
+    }).pipe(Effect.provide(AppLayer)))
+
+  it.effect("answers guests with 401 and signed-in callers who aren't allowed with 403", () =>
+    Effect.gen(function*() {
+      const guest = yield* guestClient
+      const unauthenticated = yield* guest.units.list().pipe(Effect.flip)
+      assert.strictEqual(unauthenticated._tag, "Unauthenticated")
+
+      const ana = yield* clientFor("ana")
+      const denied = yield* ana.units.rename({ params: { id: UnitId.make("u-icu") }, payload: { name: "x" } }).pipe(
+        Effect.flip
+      )
+      assert.strictEqual(denied._tag, "PermissionDenied")
     }).pipe(Effect.provide(AppLayer)))
 
   it.effect("rejects an action the caller could never perform before the request is decoded", () =>

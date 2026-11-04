@@ -1,10 +1,10 @@
 import { Context, Effect, Layer, Schema } from "effect"
-import { type Authorizer, type Permission, type PermissionError, PermissionSql } from "effect/permission"
+import type { Authorizer, Permission, PermissionError } from "effect/permission"
 import { SqlClient, SqlModel, SqlSchema } from "effect/sql"
 import type { UnitId } from "../domain/Ids.ts"
 import { Unit, UnitNotFound } from "../domain/Unit.ts"
-import { Permissions } from "../permissions/Permissions.ts"
 import type { CurrentPrincipal } from "../permissions/Principal.ts"
+import { PermissionsSql } from "./PermissionsSql.ts"
 
 export class Units extends Context.Service<
   Units,
@@ -24,7 +24,7 @@ export class Units extends Context.Service<
     Units,
     Effect.gen(function*() {
       const sql = yield* SqlClient.SqlClient
-      const mappings = yield* PermissionSql.Mappings
+      const permissionsSql = yield* PermissionsSql
       const repo = yield* SqlModel.makeRepository(Unit, {
         tableName: "units",
         spanPrefix: "Units",
@@ -34,9 +34,7 @@ export class Units extends Context.Service<
       const list = Effect.fn("Units.list")(function*() {
         // The units:read rule, with the principal's values filled in, becomes
         // the WHERE clause: one query, and pages stay full.
-        const visible = yield* PermissionSql.filter(Permissions, "units:read").pipe(
-          Effect.provideService(PermissionSql.Mappings, mappings)
-        )
+        const visible = yield* permissionsSql.filter("units:read")
         return yield* SqlSchema.findAll({
           Request: Schema.Void,
           Result: Unit,

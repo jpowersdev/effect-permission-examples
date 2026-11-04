@@ -1,6 +1,6 @@
-import { Effect, Layer } from "effect"
+import { Effect, Layer, Redacted } from "effect"
 import { HttpApiBuilder } from "effect/http-api"
-import { PermissionHttpApi } from "effect/permission"
+import { PermissionHttpApi, Principal } from "effect/permission"
 import { Api } from "../api/Api.ts"
 import { Authentication, Authorize } from "../api/Middleware.ts"
 import { CurrentPrincipal } from "../permissions/Principal.ts"
@@ -15,7 +15,10 @@ export const AuthenticationLayer = Layer.effect(
     const authenticator = yield* Authenticator
     return Authentication.of({
       bearer: Effect.fn(function*(httpEffect, { credential }) {
-        const principal = yield* authenticator.authenticate(credential)
+        // No token is a guest: public endpoints work, protected ones answer 401
+        const principal = Redacted.value(credential) === ""
+          ? Principal.guest
+          : yield* authenticator.authenticate(credential)
         return yield* Effect.provideService(httpEffect, CurrentPrincipal, principal)
       })
     })

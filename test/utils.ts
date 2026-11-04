@@ -32,5 +32,10 @@ export const clientWith = (token: Redacted.Redacted<string>) =>
     ))
   )
 
+// A client that sends no token, so the request runs as a guest
+export const guestClient = HttpApiTest.groups(Api, ["units", "swaps"]).pipe(
+  Effect.provide(HttpApiMiddleware.layerClient(Authentication, ({ next, request }) => next(request)))
+)
+
 export const clientFor = (name: string, options?: Parameters<typeof tokenFor>[1]) =>
   Effect.flatMap(tokenFor(name, options), clientWith)

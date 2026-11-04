@@ -1,10 +1,10 @@
 import { Context, Effect, Layer, Schema } from "effect"
-import { type Authorizer, type Permission, type PermissionError, PermissionSql } from "effect/permission"
+import type { Authorizer, Permission, PermissionError } from "effect/permission"
 import { SqlClient, SqlModel, SqlSchema } from "effect/sql"
 import type { SwapRequestId } from "../domain/Ids.ts"
 import { SwapNotFound, SwapRequest, type SwapStatus } from "../domain/SwapRequest.ts"
-import { Permissions } from "../permissions/Permissions.ts"
 import type { CurrentPrincipal } from "../permissions/Principal.ts"
+import { PermissionsSql } from "./PermissionsSql.ts"
 
 // The draft `Permissions.create` returns for swaps:create: the client's
 // payload plus the `set` presets.
@@ -31,7 +31,7 @@ export class Swaps extends Context.Service<
     Swaps,
     Effect.gen(function*() {
       const sql = yield* SqlClient.SqlClient
-      const mappings = yield* PermissionSql.Mappings
+      const permissionsSql = yield* PermissionsSql
       const repo = yield* SqlModel.makeRepository(SwapRequest, {
         tableName: "swap_requests",
         spanPrefix: "Swaps",
@@ -39,9 +39,7 @@ export class Swaps extends Context.Service<
       })
 
       const list = Effect.fn("Swaps.list")(function*() {
-        const visible = yield* PermissionSql.filter(Permissions, "swaps:read").pipe(
-          Effect.provideService(PermissionSql.Mappings, mappings)
-        )
+        const visible = yield* permissionsSql.filter("swaps:read")
         return yield* SqlSchema.findAll({
           Request: Schema.Void,
           Result: SwapRequest,
