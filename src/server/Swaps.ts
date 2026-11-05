@@ -6,13 +6,6 @@ import { SwapNotFound, SwapRequest, type SwapStatus } from "../domain/SwapReques
 import type { CurrentPrincipal } from "../permissions/Principal.ts"
 import { PermissionsSql } from "./PermissionsSql.ts"
 
-// The draft `Permissions.create` returns for swaps:create: the client's
-// payload plus the `set` presets.
-type Draft = Permission.Authorized<
-  "swaps:create",
-  typeof SwapRequest.jsonCreate.Type & Pick<SwapRequest, "requesterId" | "status">
->
-
 export class Swaps extends Context.Service<
   Swaps,
   {
@@ -22,7 +15,7 @@ export class Swaps extends Context.Service<
       CurrentPrincipal | Authorizer.Authorizer
     >
     findById(id: SwapRequestId): Effect.Effect<SwapRequest, SwapNotFound>
-    insert(draft: Draft): Effect.Effect<SwapRequest>
+    insert(draft: Permission.Authorized<"swaps:create", typeof SwapRequest.insert.Type>): Effect.Effect<SwapRequest>
     accept(swap: Permission.Authorized<"swaps:accept", SwapRequest>): Effect.Effect<SwapRequest>
     approve(swap: Permission.Authorized<"swaps:approve", SwapRequest>): Effect.Effect<SwapRequest>
   }
@@ -57,9 +50,11 @@ export class Swaps extends Context.Service<
         )
       )
 
-      // `SwapRequest.insert.makeEffect` fills in the generated id and timestamp
-      const insert = Effect.fn("Swaps.insert")((draft: Draft) =>
-        SwapRequest.insert.makeEffect(draft).pipe(Effect.flatMap(repo.insert), Effect.orDie)
+      // `Permissions.create` already built the insert variant, with its
+      // generated id and timestamp, so it goes straight to the repository
+      const insert = Effect.fn("Swaps.insert")(
+        (draft: Permission.Authorized<"swaps:create", typeof SwapRequest.insert.Type>) =>
+          repo.insert(draft).pipe(Effect.orDie)
       )
 
       const setStatus = Effect.fnUntraced(function*(swap: SwapRequest, status: SwapStatus) {

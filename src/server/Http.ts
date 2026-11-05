@@ -56,8 +56,8 @@ export const SwapsHandlers = HttpApiBuilder.group(
     return handlers.handleAll({
       list: () => swaps.list(),
       create: Effect.fn(function*({ payload }) {
-        // Fills in requesterId and status, then checks the caller works on
-        // the swap's unit
+        // Builds SwapRequest.insert from the payload, with requesterId and
+        // status filled in, then checks the caller works on the swap's unit
         const draft = yield* Permissions.create("swaps:create", payload)
         return yield* swaps.insert(draft)
       }),

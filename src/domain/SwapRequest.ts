@@ -12,8 +12,8 @@ export class SwapRequest extends Model.Class<SwapRequest>("SwapRequest")({
   unitId: UnitId,
   recipientId: ProfileId,
   // `GeneratedByApp` fields are left out of `SwapRequest.jsonCreate`, so
-  // clients can't send them. The `swaps:create` permission fills them in with
-  // its `set` presets: the requester is always the caller.
+  // clients can't send them. The `swaps:create` permission must fill them in
+  // with its `set` presets: the requester is always the caller.
   requesterId: Model.GeneratedByApp(ProfileId),
   status: Model.GeneratedByApp(SwapStatus),
   createdAt: Model.DateTimeInsert

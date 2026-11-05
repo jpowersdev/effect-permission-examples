@@ -2,6 +2,7 @@ import { Context, Effect, Layer, Option, Redacted, Schema } from "effect"
 import { Principal } from "effect/permission"
 import { SqlClient, SqlSchema } from "effect/sql"
 import { Unauthorized } from "../api/Middleware.ts"
+import type { ProfileId } from "../domain/Ids.ts"
 import { Member } from "../permissions/Principal.ts"
 import { Tokens } from "./Tokens.ts"
 
@@ -18,7 +19,9 @@ const Profile = Schema.Struct({
 export class Authenticator extends Context.Service<
   Authenticator,
   {
-    authenticate(token: Redacted.Redacted<string>): Effect.Effect<Principal.Authenticated<Member>, Unauthorized>
+    authenticate(
+      token: Redacted.Redacted<string>
+    ): Effect.Effect<Principal.Authenticated<Member, ProfileId>, Unauthorized>
   }
 >()("examples/Authenticator") {
   static readonly layerNoDeps = Layer.effect(

@@ -37,8 +37,11 @@ the principal and the resource, and enforced in four places:
   ([`src/server/PermissionsSql.ts`](src/server/PermissionsSql.ts)) closes over
   the SQL client and the table mappings, and also answers the authorizer's
   relation lookups.
-- **On writes.** `Permissions.create` fills in the requester and status the
-  client can't send, then checks the result. `Permissions.update` checks the
+- **On writes.** `Permissions.create` takes the model's `jsonCreate`
+  payload, fills in the requester and status the client can't send, and
+  checks the resulting `insert` value, which goes straight to the repository.
+  If the rule's `set` forgot a field the payload doesn't provide, it wouldn't
+  compile. `Permissions.update` checks the
   unit before and after the change, so a manager can't move a unit out of
   their own reach.
 
@@ -85,8 +88,6 @@ curl -H "Authorization: Bearer <ana's token>" http://localhost:3000/units
   request. Lazy, cached loading isn't built yet.
 - Relation lookups for single-record checks are one query each; they aren't
   batched yet.
-- The type of `Permissions.create`'s result is written out by hand in
-  `src/server/Swaps.ts` rather than derived from the model's variants.
 
 ## Updating the fork
 

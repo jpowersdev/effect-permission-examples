@@ -11,26 +11,26 @@ export const UnitMembership = Condition.relation<ProfileId, UnitId>("unit:member
 // Rule functions receive references, not values. They run once, here, and
 // record conditions that can be checked against one unit in memory or
 // compiled into a SQL `WHERE` clause for a list.
-export const UnitRules = Permission.rules(CurrentPrincipal, Unit, {
-  "units:read": {
+export const UnitRules = Permission.rules(CurrentPrincipal, Unit)
+  .action("units:read", {
     filter: ({ principal, resource: unit }) =>
       Condition.or(
         principal.attributes.isSuperAdmin,
         Condition.eq(unit.hospitalId, principal.attributes.homeHospitalId),
         Condition.related(UnitMembership, principal.subject.id, unit.id)
       )
-  },
-  "units:update": {
-    // Which existing units you may change
+  })
+  .action("units:update", {
+    // Which existing units you may change. `allowed` reuses the filter of an
+    // action declared above.
     filter: ({ principal, allowed }) => Condition.and(allowed("units:read"), principal.attributes.managesUnits),
     // What the unit must still satisfy afterwards: you can't move a unit out
     // of your own reach
     check: ({ allowed }) => allowed("units:read")
-  }
-})
+  })
 
-export const SwapRules = Permission.rules(CurrentPrincipal, SwapRequest, {
-  "swaps:read": {
+export const SwapRules = Permission.rules(CurrentPrincipal, SwapRequest)
+  .action("swaps:read", {
     filter: ({ principal, resource: swap }) =>
       Condition.or(
         Condition.eq(swap.requesterId, principal.subject.id),
@@ -40,17 +40,19 @@ export const SwapRules = Permission.rules(CurrentPrincipal, SwapRequest, {
           Condition.related(UnitMembership, principal.subject.id, swap.unitId)
         )
       )
-  },
-  "swaps:create": {
-    // Values the client can't choose, written for the caller before the check
-    set: ({ principal }) => ({ requesterId: principal.subject.id as ProfileId, status: "pending" }),
+  })
+  .create("swaps:create", {
+    // The client sends `SwapRequest.jsonCreate`, which has no requesterId or
+    // status. `set` must fill both, or this doesn't compile.
+    set: ({ principal }) => ({ requesterId: principal.subject.id, status: "pending" }),
+    // Checked on `SwapRequest.insert`, the value that will be written
     check: ({ principal, resource: swap }) => Condition.related(UnitMembership, principal.subject.id, swap.unitId)
-  },
-  "swaps:accept": {
+  })
+  .action("swaps:accept", {
     filter: ({ principal, resource: swap }) =>
       Condition.and(Condition.eq(swap.recipientId, principal.subject.id), Condition.eq(swap.status, "pending"))
-  },
-  "swaps:approve": {
+  })
+  .action("swaps:approve", {
     filter: ({ principal, resource: swap }) =>
       Condition.and(
         Condition.eq(swap.status, "accepted"),
@@ -61,8 +63,7 @@ export const SwapRules = Permission.rules(CurrentPrincipal, SwapRequest, {
     // Forbid overrides every filter: support staff can look at a swap while
     // impersonating a manager, but can't approve it
     forbid: ({ principal }) => Condition.isNotNull(principal.actor)
-  }
-})
+  })
 
 export const Permissions = Permission.make(CurrentPrincipal, {
   rules: [UnitRules, SwapRules],
