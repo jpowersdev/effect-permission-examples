@@ -53,6 +53,12 @@ link can only respond to swaps), its `act` claim as the actor (support can
 look while impersonating, but a `forbid` rule stops them approving), and its
 `rev` claim, so bumping a profile's revision revokes its tokens.
 
+The attributes are loaded eagerly here: they all come from the profile row,
+which the revision check reads on every request anyway. An attribute that
+costs a separate lookup can be `Principal.lazy(effect)` instead. Rules don't
+change; the effect runs the first time a rule reaches the attribute, once per
+request, and handlers read it with `yield*`.
+
 Requests without a token run as a guest: public endpoints work, and protected
 ones answer 401. A signed-in caller who isn't allowed gets a 403.
 
@@ -85,8 +91,6 @@ curl -H "Authorization: Bearer <ana's token>" http://localhost:3000/units
 
 - RPC handlers can only fail with errors their RPC declares, so each RPC that
   checks a record lists the permission errors.
-- Principal attributes are loaded when the token is verified, on every
-  request. Lazy, cached loading isn't built yet.
 - Relation lookups for single-record checks are one query each; they aren't
   batched yet.
 
