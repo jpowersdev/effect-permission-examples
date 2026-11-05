@@ -41,9 +41,10 @@ the principal and the resource, and enforced in four places:
   payload, fills in the requester and status the client can't send, and
   checks the resulting `insert` value, which goes straight to the repository.
   If the rule's `set` forgot a field the payload doesn't provide, it wouldn't
-  compile. `Permissions.update` checks the
-  unit before and after the change, so a manager can't move a unit out of
-  their own reach.
+  compile. `Permissions.update` takes part of the `jsonUpdate` payload and
+  returns the `update` value for the repository. It checks the unit before
+  and after the change, so a manager can't move a unit out of their own
+  reach.
 
 Authentication ([`src/server/Authenticator.ts`](src/server/Authenticator.ts))
 verifies a JWT with `effect/jose` and builds the principal: the profile's

@@ -39,8 +39,8 @@ export const UnitsHandlers = HttpApiBuilder.group(
       list: () => units.list(),
       rename: Effect.fn(function*({ params, payload }) {
         const unit = yield* units.findById(params.id)
-        // Checks the unit as it is, applies the patch, then checks the unit
-        // as it would be
+        // Checks the unit as it is, builds Unit.update with the new name,
+        // then checks the unit as it would be
         const renamed = yield* Permissions.update("units:update", unit, { name: payload.name })
         return yield* units.save(renamed)
       })

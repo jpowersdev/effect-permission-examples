@@ -17,7 +17,7 @@ export class Units extends Context.Service<
     >
     findById(id: UnitId): Effect.Effect<Unit, UnitNotFound>
     // Only accepts a unit that passed the units:update check
-    save(unit: Permission.Authorized<"units:update", Unit>): Effect.Effect<Unit>
+    save(unit: Permission.Authorized<"units:update", typeof Unit.update.Type>): Effect.Effect<Unit>
   }
 >()("examples/Units") {
   static readonly layerNoDeps = Layer.effect(
@@ -52,7 +52,9 @@ export class Units extends Context.Service<
         )
       )
 
-      const save = Effect.fn("Units.save")((unit: Permission.Authorized<"units:update", Unit>) =>
+      // `Permissions.update` already built the update variant, so it goes
+      // straight to the repository
+      const save = Effect.fn("Units.save")((unit: Permission.Authorized<"units:update", typeof Unit.update.Type>) =>
         repo.update(unit).pipe(Effect.orDie)
       )
 
