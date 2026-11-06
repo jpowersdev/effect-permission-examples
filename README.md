@@ -8,6 +8,9 @@ The fork is pinned as a git submodule at `vendor/effect`, and its packages are
 linked from source, so there is no build step. The layout follows Effect's own
 HttpApi example in `ai-docs/src/51_http-server`.
 
+[WALKTHROUGH.md](WALKTHROUGH.md) goes through each module in turn, with code
+from this app and the output it produces.
+
 ## The app
 
 Nurses swap shifts on hospital units, and a unit's manager approves the swap.
@@ -74,6 +77,7 @@ pnpm install
 pnpm test        # the scenarios below, against an in-memory SQLite database
 pnpm check       # tsc
 pnpm start       # serves on http://localhost:3000 (docs at /docs) and logs a token per profile
+node src/getting-started.ts   # the smallest complete example, from the walkthrough
 ```
 
 ```sh
