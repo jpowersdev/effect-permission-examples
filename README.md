@@ -55,9 +55,9 @@ look while impersonating, but a `forbid` rule stops them approving), and its
 
 The attributes are loaded eagerly here: they all come from the profile row,
 which the revision check reads on every request anyway. An attribute that
-costs a separate lookup can be `Principal.lazy(effect)` instead. Rules don't
-change; the effect runs the first time a rule reaches the attribute, once per
-request, and handlers read it with `yield*`.
+costs a separate lookup can be given to `Principal.make` as an effect instead.
+Rules don't change; the effect runs the first time a rule reaches the
+attribute, once per request, and handlers read it with `yield*`.
 
 Requests without a token run as a guest: public endpoints work, and protected
 ones answer 401. A signed-in caller who isn't allowed gets a 403.
