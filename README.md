@@ -91,8 +91,6 @@ curl -H "Authorization: Bearer <ana's token>" http://localhost:3000/units
 
 - RPC handlers can only fail with errors their RPC declares, so each RPC that
   checks a record lists the permission errors.
-- Relation lookups for single-record checks are one query each; they aren't
-  batched yet.
 
 ## Updating the fork
 
