@@ -93,12 +93,12 @@ class PermissionsSql extends PermissionSql.Service<PermissionsSql>()("app/Permis
 const program = Effect.gen(function*() {
   const sql = yield* SqlClient.SqlClient
   yield* sql`CREATE TABLE documents (id TEXT PRIMARY KEY, owner_id TEXT NOT NULL, title TEXT NOT NULL)`
-  yield* sql`INSERT INTO documents VALUES ('d-1', 'u-1', 'Rota'), ('d-2', 'u-2', 'Budget')`
+  yield* sql`INSERT INTO documents VALUES ('d-1', 'u-1', 'Shift schedule'), ('d-2', 'u-2', 'Budget')`
 
   // On one document: fails with PermissionDenied unless the rule holds
-  const rota = new Document({ id: "d-1", ownerId: "u-1", title: "Rota" })
-  yield* Permissions.require("documents:read", rota)
-  yield* Effect.log(`u-1 may read ${rota.title}`)
+  const schedule = new Document({ id: "d-1", ownerId: "u-1", title: "Shift schedule" })
+  yield* Permissions.require("documents:read", schedule)
+  yield* Effect.log(`u-1 may read ${schedule.title}`)
 
   // On a list: the same rule, with u-1's values filled in, is the WHERE clause
   const permissionsSql = yield* PermissionsSql
@@ -117,8 +117,8 @@ NodeRuntime.runMain(program)
 Output:
 
 ```
-INFO: u-1 may read Rota
-INFO: u-1 sees Rota
+INFO: u-1 may read Shift schedule
+INFO: u-1 sees Shift schedule
 ```
 
 The program has four parts:
@@ -393,26 +393,26 @@ the facts from a table (see [SQL](#sql)), and
 When a rule can't be data, such as a check that calls another service,
 `Condition.custom` runs an effect with the real principal and resource.
 
-**Example** (Calling a rota service, not from this app)
+**Example** (Asking a shift schedule service, not from this app)
 
 ```ts
-class Rota extends Context.Service<Rota, {
+class ShiftSchedule extends Context.Service<ShiftSchedule, {
   readonly isOnShift: (profileId: ProfileId, unitId: UnitId) => Effect.Effect<boolean>
-}>()("app/Rota") {}
+}>()("app/ShiftSchedule") {}
 
 const onShift = Condition.custom(
   "on shift",
   ({ principal, resource: swap }: {
     readonly principal: Principal.Authenticated<Member, ProfileId>
     readonly resource: SwapRequest
-  }) => Rota.use((rota) => rota.isOnShift(principal.subject.id, swap.unitId))
+  }) => ShiftSchedule.use((schedule) => schedule.isOnShift(principal.subject.id, swap.unitId))
 )
 ```
 
 **Details**
 
 - The services a custom condition needs become requirements of
-  `Permissions.layer`, which here is `Layer<Authorizer, never, Rota>`.
+  `Permissions.layer`, which here is `Layer<Authorizer, never, ShiftSchedule>`.
 - Custom conditions run last, and only if the rest of the rule hasn't already
   decided the result.
 - They can't be compiled to SQL, so keep them off actions used to filter

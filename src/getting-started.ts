@@ -39,12 +39,12 @@ class PermissionsSql extends PermissionSql.Service<PermissionsSql>()("app/Permis
 const program = Effect.gen(function*() {
   const sql = yield* SqlClient.SqlClient
   yield* sql`CREATE TABLE documents (id TEXT PRIMARY KEY, owner_id TEXT NOT NULL, title TEXT NOT NULL)`
-  yield* sql`INSERT INTO documents VALUES ('d-1', 'u-1', 'Rota'), ('d-2', 'u-2', 'Budget')`
+  yield* sql`INSERT INTO documents VALUES ('d-1', 'u-1', 'Shift schedule'), ('d-2', 'u-2', 'Budget')`
 
   // On one document: fails with PermissionDenied unless the rule holds
-  const rota = new Document({ id: "d-1", ownerId: "u-1", title: "Rota" })
-  yield* Permissions.require("documents:read", rota)
-  yield* Effect.log(`u-1 may read ${rota.title}`)
+  const schedule = new Document({ id: "d-1", ownerId: "u-1", title: "Shift schedule" })
+  yield* Permissions.require("documents:read", schedule)
+  yield* Effect.log(`u-1 may read ${schedule.title}`)
 
   // On a list: the same rule, with u-1's values filled in, is the WHERE clause
   const permissionsSql = yield* PermissionsSql
