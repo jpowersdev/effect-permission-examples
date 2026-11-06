@@ -1,6 +1,6 @@
 import { Effect, Layer, Redacted } from "effect"
 import { HttpApiBuilder } from "effect/http-api"
-import { PermissionHttpApi, Principal } from "effect/permission"
+import { PermissionMiddleware, Principal } from "effect/permission"
 import { Api } from "../api/Api.ts"
 import { Authentication, Authorize } from "../api/Middleware.ts"
 import { CurrentPrincipal } from "../permissions/Principal.ts"
@@ -28,7 +28,7 @@ export const AuthenticationLayer = Layer.effect(
 // The authorization middleware comes from the permission modules. With `api`,
 // the layer fails to build if any endpoint has no required action, or
 // requires one without being guarded by Authorize.
-export const AuthorizeLayer = PermissionHttpApi.layer(Authorize, Permissions, { api: Api })
+export const AuthorizeLayer = PermissionMiddleware.layerHttpApi(Authorize, Permissions, { api: Api })
 
 export const UnitsHandlers = HttpApiBuilder.group(
   Api,

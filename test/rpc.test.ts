@@ -22,6 +22,11 @@ describe("Shift swaps over RPC", () => {
       const denied = yield* client.ApproveSwap({ id: s1 }).pipe(as(ana), Effect.flip)
       assert.strictEqual(denied._tag, "PermissionDenied")
 
+      // Cara gets past the middleware, and the handler denies a swap that
+      // isn't accepted yet
+      const early = yield* client.ApproveSwap({ id: s1 }).pipe(as(cara), Effect.flip)
+      assert.strictEqual(early._tag, "PermissionDenied")
+
       assert.strictEqual((yield* client.AcceptSwap({ id: s1 }).pipe(as(ana))).status, "accepted")
       assert.strictEqual((yield* client.ApproveSwap({ id: s1 }).pipe(as(cara))).status, "approved")
     }).pipe(Effect.provide(Layer.fresh(RpcLayer))))

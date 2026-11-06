@@ -1,5 +1,5 @@
 import { Effect, Layer, Redacted } from "effect"
-import { PermissionRpc } from "effect/permission"
+import { PermissionMiddleware } from "effect/permission"
 import { Unauthorized } from "../api/Middleware.ts"
 import { CurrentPrincipal } from "../permissions/Principal.ts"
 import { Permissions } from "../permissions/Permissions.ts"
@@ -22,7 +22,7 @@ export const RpcAuthenticationLayer = Layer.effect(
   })
 )
 
-export const RpcAuthorizeLayer = PermissionRpc.layer(RpcAuthorize, Permissions, { group: SwapRpcs })
+export const RpcAuthorizeLayer = PermissionMiddleware.layerRpc(RpcAuthorize, Permissions, { group: SwapRpcs })
 
 export const SwapRpcHandlers = SwapRpcs.toLayer(Effect.gen(function*() {
   const swaps = yield* Swaps

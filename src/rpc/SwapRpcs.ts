@@ -1,4 +1,3 @@
-import { Schema } from "effect"
 import { type Authorizer, PermissionError } from "effect/permission"
 import { Rpc, RpcGroup, RpcMiddleware } from "effect/rpc"
 import { SwapRequestId } from "../domain/Ids.ts"
@@ -28,20 +27,18 @@ export class RpcAuthorize extends RpcMiddleware.Service<
   error: PermissionError.PermissionError
 }) {}
 
-// An RPC handler can only fail with errors its RPC declares, so RPCs that
-// check a resource in the handler include the permission errors.
-const SwapError = Schema.Union([SwapNotFound, PermissionError.PermissionError])
-
+// Handlers may also fail with their middleware's errors, so each RPC declares
+// only its own.
 export const AcceptSwap = Rpc.make("AcceptSwap", {
   payload: { id: SwapRequestId },
   success: SwapRequest.json,
-  error: SwapError
+  error: SwapNotFound
 }).annotate(Permissions.Required, "swaps:accept")
 
 export const ApproveSwap = Rpc.make("ApproveSwap", {
   payload: { id: SwapRequestId },
   success: SwapRequest.json,
-  error: SwapError
+  error: SwapNotFound
 }).annotate(Permissions.Required, "swaps:approve")
 
 export class SwapRpcs extends RpcGroup.make(AcceptSwap, ApproveSwap)

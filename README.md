@@ -87,11 +87,6 @@ curl -H "Authorization: Bearer <ana's token>" http://localhost:3000/units
 | `test/status.test.ts` | The real HTTP status codes: 401 for guests and bad tokens, 403 for callers who aren't allowed |
 | `test/filter.test.ts` | Compiled SQL filters return exactly the swaps the single-record check allows |
 
-## Rough edges found so far
-
-- RPC handlers can only fail with errors their RPC declares, so each RPC that
-  checks a record lists the permission errors.
-
 ## Updating the fork
 
 ```sh
